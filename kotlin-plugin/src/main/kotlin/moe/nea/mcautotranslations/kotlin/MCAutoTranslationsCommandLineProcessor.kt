@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.messageCollector
 import org.jetbrains.kotlin.name.FqName
 
 
@@ -36,10 +37,10 @@ class MCAutoTranslationsCommandLineProcessor : CommandLineProcessor {
 	override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {
 		when (option.optionName) {
 			resolvedFunctionOption.optionName ->
-				configuration.put(translateFunction, FqName(value))
+				configuration.put(resolvedFunction, FqName(value))
 
 			translateFunctionOption.optionName ->
-				configuration.put(resolvedFunction, FqName(value))
+				configuration.put(translateFunction, FqName(value))
 			else -> error("Unknown config option ${option.optionName}")
 		}
 	}

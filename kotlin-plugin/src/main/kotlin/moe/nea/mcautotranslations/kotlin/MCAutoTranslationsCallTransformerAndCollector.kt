@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -25,6 +26,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 class MCAutoTranslationsCallTransformerAndCollector(
 	val file: IrFile,
 	val irPluginContext: IrPluginContext,
@@ -130,6 +132,7 @@ class MCAutoTranslationsCallTransformerAndCollector(
 	}
 
 
+	@Suppress("UNCHECKED_CAST")
 	fun constString(
 		text: String,
 		startOffset: Int = SYNTHETIC_OFFSET,

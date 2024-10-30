@@ -9,14 +9,19 @@ repositories {
 	mavenCentral()
 }
 
+dependencies {
+	implementation("com.google.code.gson:gson:2.11.0")
+}
+
 mcAutoTranslations {
 	translationFunction.set("moe.nea.mcautotranslations.example.tr")
 	translationFunctionResolved.set("moe.nea.mcautotranslations.example.trResolved")
 }
 
-tasks.register("collectTranslations", CollectTranslations::class) {
+val collectTranslations by tasks.registering(CollectTranslations::class) {
 	this.baseTranslations.from(file("en_us.json"))
 	this.classes.from(sourceSets.main.map { it.kotlin.classesDirectory })
-	this.outputFile.set(layout.buildDirectory.file("compiled_en_us.json"))
+	this.outputFile.set(layout.buildDirectory.file("en_us.json"))
 }
 
+tasks.processResources { from(collectTranslations) }
