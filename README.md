@@ -57,11 +57,27 @@ and use the provided translations to format a proper return value.
 
 ## Gradle setup
 
+You need to add `maven("https://repo.nea.moe/releases")` as a repository to your `settings.gradle.kts`:
+
+
+```kt
+pluginManagement {
+	repositories {
+		maven {
+			url = uri("https://repo.nea.moe/releases")
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+```
+
 Next you need to configure the gradle plugin:
 
 ```kt
 plugins {
 	kotlin("jvm") version "2.0.20"
+	// Check https://repo.nea.moe/#/releases/moe/nea/mc-auto-translations/moe.nea.mc-auto-translations.gradle.plugin
 	id("moe.nea.mc-auto-translations") version "0.0.1"
 }
 
