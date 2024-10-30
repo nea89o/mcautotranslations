@@ -9,12 +9,12 @@ import org.jetbrains.kotlin.name.FqName
 
 class MCAutoTranslationsIrGenerationExtension(
 	private val messageCollector: MessageCollector,
+	private val replace: FqName,
+	private val resolved: FqName,
 ) : IrGenerationExtension {
 	override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
 		val translationNames: MutableMap<FqName, CallableId> = mutableMapOf()
-		val target = FqName("moe.nea.translatetest.tr")
-		val resolved = FqName("moe.nea.translatetest.trResolved") // TODO: make these names configurable
-		translationNames[target] = CallableId(resolved.parent(), resolved.shortName())
+		translationNames[replace] = CallableId(resolved.parent(), resolved.shortName())
 		moduleFragment.files.forEach {
 			val visitor = MCAutoTranslationsCallTransformerAndCollector(
 				it,

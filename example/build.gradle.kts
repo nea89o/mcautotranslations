@@ -9,6 +9,11 @@ repositories {
 	mavenCentral()
 }
 
+mcAutoTranslations {
+	translationFunction.set("moe.nea.mcautotranslations.example.tr")
+	translationFunctionResolved.set("moe.nea.mcautotranslations.example.trResolved")
+}
+
 tasks.register("collectTranslations", CollectTranslations::class) {
 	this.baseTranslations.from(file("en_us.json"))
 	this.classes.from(sourceSets.main.map { it.kotlin.classesDirectory })

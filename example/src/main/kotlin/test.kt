@@ -1,6 +1,5 @@
-package moe.nea.translatetest
+package moe.nea.mcautotranslations.example
 
-// TODO: change this name
 data class Text(val key: String, val args: List<Any>)
 
 fun trResolved(key: String, vararg args: Any) = Text(key, args.toList())

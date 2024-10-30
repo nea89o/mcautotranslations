@@ -21,7 +21,14 @@ class MCAutoTranslationsGradlePlugin : KotlinCompilerPluginSupportPlugin {
 			compileOnly(BuildConfig.ANNOTATIONS_GROUP + ":" + BuildConfig.ANNOTATIONS_ARTIFACT + ":" + BuildConfig.ANNOTATIONS_VERSION)
 		}
 		return project.provider {
-			listOf() // TODO: add plugin options from extension in here
+			listOf(
+				SubpluginOption(BuildConfig.PLUGIN_OPTION_RESOLVED_FUNCTION,
+				                validateFunctionName("mcAutoTranslations.translationFunctionResolved",
+				                                     extension.translationFunctionResolved)
+				),
+				SubpluginOption(BuildConfig.PLUGIN_OPTION_TRANSLATE_FUNCTION,
+				                validateFunctionName("mcAutoTranslations.translationFunction",
+				                                     extension.translationFunction)))
 		}
 	}
 

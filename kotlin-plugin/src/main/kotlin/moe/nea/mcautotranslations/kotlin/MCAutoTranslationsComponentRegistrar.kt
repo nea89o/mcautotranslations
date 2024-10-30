@@ -4,13 +4,11 @@ package moe.nea.mcautotranslations.kotlin
 
 import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.messageCollector
 import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
-import kotlin.collections.getOrPut
 
 @AutoService(CompilerPluginRegistrar::class)
 class MCAutoTranslationsComponentRegistrar : CompilerPluginRegistrar() {
@@ -20,9 +18,11 @@ class MCAutoTranslationsComponentRegistrar : CompilerPluginRegistrar() {
 	override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
 		val messageCollector = configuration.messageCollector
 		IrGenerationExtension.registerExtension(
-			extension = MCAutoTranslationsIrGenerationExtension(messageCollector))
-
-		messageCollector.report(CompilerMessageSeverity.INFO, "Registering stuff")
+			extension = MCAutoTranslationsIrGenerationExtension(
+				messageCollector,
+				configuration.get(MCAutoTranslationsCommandLineProcessor.translateFunction)!!,
+				configuration.get(MCAutoTranslationsCommandLineProcessor.resolvedFunction)!!,
+			))
 	}
 
 	fun <T : Any> ExtensionStorage.registerExtensionFirst(

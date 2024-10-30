@@ -11,7 +11,7 @@ plugins {
 
 allprojects {
 	group = "moe.nea.mcautotranslations"
-	version = "1.0-SNAPSHOT"
+	version = "0.0.1"
 
 	repositories {
 		mavenCentral()
@@ -38,5 +38,7 @@ subprojects {
 		buildConfigField<String>("ANNOTATIONS_GROUP", project(":annotations").group.toString())
 		buildConfigField<String>("ANNOTATIONS_ARTIFACT", project(":annotations").name)
 		buildConfigField<String>("ANNOTATIONS_VERSION", project(":annotations").version.toString())
+		buildConfigField<String>("PLUGIN_OPTION_TRANSLATE_FUNCTION", "PLUGIN_OPTION_TRANSLATE_FUNCTION")
+		buildConfigField<String>("PLUGIN_OPTION_RESOLVED_FUNCTION", "PLUGIN_OPTION_RESOLVED_FUNCTION")
 	}
 }
