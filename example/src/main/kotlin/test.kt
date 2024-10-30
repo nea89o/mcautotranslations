@@ -14,6 +14,7 @@ class Text(val key: String, val args: Array<out Any>) {
 	}
 }
 
+@Suppress("UNUSED")
 fun trResolved(key: String, vararg args: Any) = Text(key, args)
 fun tr(key: String, default: String): Text = error("Did not run compiler plugin")
 fun main() {

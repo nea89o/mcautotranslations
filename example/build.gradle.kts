@@ -17,7 +17,7 @@ mcAutoTranslations {
 }
 
 mcAutoTranslations.collectTranslationsTaskFor(sourceSets.main.get()) {
-	this.baseTranslations.from(file("en_us.json"))
+	baseTranslations.from(file("en_us.json"))
 	outputFileName("en_us.json")
 }
 tasks.processResources {
