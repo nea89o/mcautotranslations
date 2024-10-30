@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Repeatable(GatheredTranslations.class)
 public @interface GatheredTranslation {
-	String key();
+	String translationKey();
 
-	String value();
+	String translationValue();
 }

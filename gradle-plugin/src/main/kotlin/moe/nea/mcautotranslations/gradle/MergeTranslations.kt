@@ -2,23 +2,21 @@ package moe.nea.mcautotranslations.gradle
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import moe.nea.mcautotranslations.annotations.GatheredTranslation
+import moe.nea.mcautotranslations.gradle.visitors.AnnotationCollector
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
-import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 import java.io.File
+import java.util.TreeMap
 
 abstract class CollectTranslations : DefaultTask() {
 	@get:InputFiles
@@ -30,31 +28,40 @@ abstract class CollectTranslations : DefaultTask() {
 	@get:PathSensitive(PathSensitivity.RELATIVE)
 	abstract val classes: ConfigurableFileCollection
 
+	@get:Internal
+	abstract val cacheFile: RegularFileProperty
+
 	@get:OutputFile
 	abstract val outputFile: RegularFileProperty
 
+	init {
+		cacheFile.convention(project.layout.buildDirectory.file("mergeTranslations/incremental/${this.name}.json"))
+		outputFile.convention(project.layout.buildDirectory.file("mergeTranslations/build/${this.name}/en_us.json"))
+	}
+
 	class Translations {
-		var baseTranslation: HashMap<String, HashMap<String, String>> = HashMap()
-		var inlineTranslations: HashMap<String, HashMap<String, String>> = HashMap()
+		var baseTranslation: TreeMap<String, TreeMap<String, String>> = TreeMap()
+		var inlineTranslations: TreeMap<String, TreeMap<String, String>> = TreeMap()
 	}
 
 	companion object {
 		val gson = Gson()
-		val mapType: TypeToken<HashMap<String, String>> = object : TypeToken<HashMap<String, String>>() {}
+		val mapType: TypeToken<TreeMap<String, String>> = object : TypeToken<TreeMap<String, String>>() {}
 	}
 
 	@TaskAction
 	fun execute(inputs: InputChanges) {
 		val baseTranslationsDirty = inputs.getFileChanges(baseTranslations).any()
-		val outFile = outputFile.get().asFile
-		val outputExists = outFile.exists()
-		val canBeIncremental = outputExists && !baseTranslationsDirty
+		val cacheFile = cacheFile.get().asFile
+		cacheFile.parentFile.mkdirs()
+		val cacheExists = cacheFile.exists()
+		val canBeIncremental = cacheExists && !baseTranslationsDirty
 		val baseTranslations: Translations = if (canBeIncremental) {
-			gson.fromJson(outFile.readText(), Translations::class.java)
+			gson.fromJson(cacheFile.readText(), Translations::class.java)
 		} else {
 			val t = Translations()
 			baseTranslations.associateTo(t.baseTranslation) {
-				it.toString() to gson.fromJson(outFile.readText(), mapType)
+				it.toString() to gson.fromJson(it.readText(), mapType)
 			}
 			t
 		}
@@ -73,86 +80,26 @@ abstract class CollectTranslations : DefaultTask() {
 			.forEach {
 				val className = getClassName(it.relativePath)
 				if (it.file.exists()) {
-					parseClassAnnotations(it.file)
+					baseTranslations.inlineTranslations[className] = parseClassAnnotations(it.file)
 				} else {
 					baseTranslations.inlineTranslations.remove(className)
 				}
 			}
-		outFile.writeText(gson.toJson(baseTranslations))
+		cacheFile.writeText(gson.toJson(baseTranslations))
+		outputFile.get().asFile.writeText(gson.toJson(toKVMap(baseTranslations)))
 	}
 
-
-	private class KVVisitor(val map: MutableMap<String, String>) : AnnotationVisitor(Opcodes.ASM9) {
-		var value: String? = null
-		var key: String? = null
-		override fun visit(name: String, value: Any) {
-			when (name) {
-				"key" -> this.key = value as String
-				"value" -> this.value = value as String
-				else -> error("Unknown annotation element $name")
+	private fun toKVMap(translations: Translations): TreeMap<String, String> {
+		return (translations.baseTranslation.values.asSequence()
+				+ translations.inlineTranslations.values.asSequence())
+			.fold(TreeMap()) { acc, x ->
+				acc.putAll(x) // TODO: warn on duplicate properties (possibly with error enum configuration)
+				acc
 			}
-		}
-
-		override fun visitAnnotation(name: String?, descriptor: String?): AnnotationVisitor {
-			error("Unknown annotation element $name")
-		}
-
-		override fun visitArray(name: String?): AnnotationVisitor {
-			error("Unknown annotation element $name")
-		}
-
-		override fun visitEnum(name: String?, descriptor: String?, value: String?) {
-			error("Unknown annotation element $name")
-		}
-
-		override fun visitEnd() {
-			map[key ?: error("Missing key")] = value ?: error("Missing value")
-		}
 	}
 
-	private class RepeatableVisitor(val map: MutableMap<String, String>) : AnnotationVisitor(Opcodes.ASM9) {
-		override fun visitArray(name: String?): AnnotationVisitor {
-			require(name == "value") { "Unknown annotation element $name" }
-			foundArray = true
-			return KVVisitor(map)
-		}
-
-		var foundArray = false
-
-		override fun visitEnd() {
-			require(foundArray) { "Missing array" }
-		}
-
-		override fun visitAnnotation(name: String?, descriptor: String?): AnnotationVisitor {
-			error("Unknown annotation element $name")
-		}
-
-		override fun visit(name: String?, value: Any?) {
-			error("Unknown annotation element $name")
-		}
-
-		override fun visitEnum(name: String?, descriptor: String?, value: String?) {
-			error("Unknown annotation element $name")
-		}
-	}
-
-	private class AnnotationCollector(val map: MutableMap<String, String>) : ClassVisitor(Opcodes.ASM9) {
-		override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-			// TODO: inject our own annotations into the classpath
-			if (Type.getType(GatheredTranslation::class.java).descriptor.equals(descriptor)) {
-				return KVVisitor(map)
-			}
-			if (Type.getType(GatheredTranslation.Repeatable::class.java).descriptor.equals(descriptor)) {
-				return RepeatableVisitor(map)
-			}
-			// TODO: remove print log
-			println("Ignoring descriptor $descriptor")
-			return null
-		}
-	}
-
-	private fun parseClassAnnotations(file: File): HashMap<String, String> {
-		val map = HashMap<String, String>()
+	private fun parseClassAnnotations(file: File): TreeMap<String, String> {
+		val map = TreeMap<String, String>()
 		kotlin.runCatching {
 			ClassReader(file.readBytes())
 				.accept(AnnotationCollector(map),
@@ -177,5 +124,4 @@ abstract class CollectTranslations : DefaultTask() {
 		if (extension != "class") return false
 		return true
 	}
-
 }

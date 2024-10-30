@@ -35,5 +35,8 @@ subprojects {
 		buildConfigField<String>("KOTLIN_PLUGIN_GROUP", project(":kotlin-plugin").group.toString())
 		buildConfigField<String>("KOTLIN_PLUGIN_ARTIFACT", project(":kotlin-plugin").name)
 		buildConfigField<String>("KOTLIN_PLUGIN_VERSION", project(":kotlin-plugin").version.toString())
+		buildConfigField<String>("ANNOTATIONS_GROUP", project(":annotations").group.toString())
+		buildConfigField<String>("ANNOTATIONS_ARTIFACT", project(":annotations").name)
+		buildConfigField<String>("ANNOTATIONS_VERSION", project(":annotations").version.toString())
 	}
 }
