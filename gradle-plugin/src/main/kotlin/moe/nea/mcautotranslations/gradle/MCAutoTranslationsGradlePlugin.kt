@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 class MCAutoTranslationsGradlePlugin : KotlinCompilerPluginSupportPlugin {
 	override fun apply(target: Project) {
 		println("Applying plugin to project")
-		target.extensions.create("mcAutoTranslations", MCAutoTranslationsExtension::class.java)
+		target.extensions.create("mcAutoTranslations", MCAutoTranslationsExtension::class.java, target)
 	}
 
 	override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {

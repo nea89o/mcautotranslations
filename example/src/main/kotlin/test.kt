@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 val resources =
-	Text::class.java.classLoader.getResourceAsStream("en_us.json")!!.reader().use {
+	Text::class.java.classLoader.getResourceAsStream("assets/minecraft/lang/en_us.json")!!.reader().use {
 		Gson().fromJson(it, object : TypeToken<HashMap<String, String>>() {})
 	}
 

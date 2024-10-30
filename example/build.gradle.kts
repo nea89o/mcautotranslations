@@ -1,5 +1,3 @@
-import moe.nea.mcautotranslations.gradle.CollectTranslations
-
 plugins {
 	kotlin("jvm") version "2.0.20"
 	id("moe.nea.mc-auto-translations")
@@ -18,10 +16,12 @@ mcAutoTranslations {
 	translationFunctionResolved.set("moe.nea.mcautotranslations.example.trResolved")
 }
 
-val collectTranslations by tasks.registering(CollectTranslations::class) {
+mcAutoTranslations.collectTranslationsTaskFor(sourceSets.main.get()) {
 	this.baseTranslations.from(file("en_us.json"))
-	this.classes.from(sourceSets.main.map { it.kotlin.classesDirectory })
-	this.outputFile.set(layout.buildDirectory.file("en_us.json"))
+	outputFileName("en_us.json")
 }
-
-tasks.processResources { from(collectTranslations) }
+tasks.processResources {
+	from(mcAutoTranslations.collectTranslationsTaskFor(sourceSets.main.get())) {
+		into("assets/minecraft/lang")
+	}
+}

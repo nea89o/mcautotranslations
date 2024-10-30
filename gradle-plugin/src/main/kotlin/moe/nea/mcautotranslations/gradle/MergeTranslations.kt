@@ -5,7 +5,9 @@ import com.google.gson.reflect.TypeToken
 import moe.nea.mcautotranslations.gradle.visitors.AnnotationCollector
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
@@ -36,7 +38,16 @@ abstract class CollectTranslations : DefaultTask() {
 
 	init {
 		cacheFile.convention(project.layout.buildDirectory.file("mergeTranslations/incremental/${this.name}.json"))
-		outputFile.convention(project.layout.buildDirectory.file("mergeTranslations/build/${this.name}/en_us.json"))
+		// TODO: should this second convention be changed?
+		outputFile.convention(makeFileName("en_us.json"))
+	}
+
+	private fun makeFileName(name: String): Provider<RegularFile> {
+		return project.layout.buildDirectory.file("mergeTranslations/build/${this.name}/$name")
+	}
+
+	fun outputFileName(name: String) {
+		outputFile.set(makeFileName(name))
 	}
 
 	class Translations {
@@ -91,7 +102,7 @@ abstract class CollectTranslations : DefaultTask() {
 
 	private fun toKVMap(translations: Translations): TreeMap<String, String> {
 		return (translations.baseTranslation.values.asSequence()
-				+ translations.inlineTranslations.values.asSequence())
+			+ translations.inlineTranslations.values.asSequence())
 			.fold(TreeMap()) { acc, x ->
 				acc.putAll(x) // TODO: warn on duplicate properties (possibly with error enum configuration)
 				acc
