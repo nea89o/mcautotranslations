@@ -1,8 +1,12 @@
 plugins {
 	kotlin("jvm")
-	`maven-publish`
 }
 
 dependencies {
 }
 
+publishing.publications {
+	create("maven", MavenPublication::class.java) {
+		from(components["java"])
+	}
+}

@@ -18,3 +18,9 @@ dependencies {
 	testImplementation("dev.zacsweers.kctfork:ksp:0.5.1")
 }
 
+
+publishing.publications {
+	create("maven", MavenPublication::class.java) {
+		from(components["java"])
+	}
+}

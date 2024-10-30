@@ -29,6 +29,7 @@ allprojects {
 }
 subprojects {
 	apply(plugin = "com.github.gmazzo.buildconfig")
+	apply(plugin = "maven-publish")
 	configure<BuildConfigExtension> {
 		packageName("moe.nea.mcautotranslation.${project.name}")
 		buildConfigField<String>("KOTLIN_PLUGIN_ID", "moe.nea.mcautotranslations")

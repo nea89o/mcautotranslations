@@ -19,5 +19,11 @@ gradlePlugin {
 			implementationClass = "moe.nea.mcautotranslations.gradle.MCAutoTranslationsGradlePlugin"
 		}
 	}
-
 }
+
+// TODO: i shouldnt need this block, but let's leave it here if i need it in the future.
+//publishing.publications {
+//	create("maven", MavenPublication::class.java) {
+//		from(components["java"])
+//	}
+//}
