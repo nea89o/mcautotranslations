@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irVararg
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
@@ -128,7 +129,8 @@ class MCAutoTranslationsCallTransformerAndCollector(
 				putValueArgument(1, constString(it.value))
 			}
 		}
-		file.annotations = annotations + file.annotations
+		val annotationContainer = file.declarations.singleOrNull()?.takeIf { it is IrClass } ?: file
+		annotationContainer.annotations = annotations + annotationContainer.annotations
 	}
 
 
