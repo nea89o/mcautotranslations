@@ -1,6 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.0.20"
 	id("moe.nea.mc-auto-translations")
+	application
 }
 
 repositories {
@@ -25,3 +26,5 @@ tasks.processResources {
 		into("assets/minecraft/lang")
 	}
 }
+
+application.mainClass.set("moe.nea.mcautotranslations.example.TestKt")
