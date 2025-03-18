@@ -7,6 +7,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -19,6 +23,7 @@ import org.gradle.work.InputChanges
 import org.objectweb.asm.ClassReader
 import java.io.File
 import java.util.TreeMap
+import javax.inject.Inject
 
 abstract class CollectTranslations : DefaultTask() {
 	@get:InputFiles
@@ -35,6 +40,9 @@ abstract class CollectTranslations : DefaultTask() {
 
 	@get:OutputFile
 	abstract val outputFile: RegularFileProperty
+
+	@get:Inject
+	abstract val problems: Problems
 
 	init {
 		cacheFile.convention(project.layout.buildDirectory.file("mergeTranslations/incremental/${this.name}.json"))
@@ -57,6 +65,10 @@ abstract class CollectTranslations : DefaultTask() {
 
 	companion object {
 		val gson = Gson()
+		val PROBLEM_DUPLICATE_TRANSLATION = ProblemId.create(
+			"merge-translations/duplicate-translation",
+			"Duplicate Translation",
+			MCAutoTranslationsGradlePlugin.PROBLEM_GROUP)
 		val mapType: TypeToken<TreeMap<String, String>> = object : TypeToken<TreeMap<String, String>>() {}
 	}
 
@@ -101,13 +113,35 @@ abstract class CollectTranslations : DefaultTask() {
 	}
 
 	private fun toKVMap(translations: Translations): TreeMap<String, String> {
-		return (translations.baseTranslation.values.asSequence()
-			+ translations.inlineTranslations.values.asSequence())
-			.fold(TreeMap()) { acc, x ->
-				acc.putAll(x) // TODO: warn on duplicate properties (possibly with error enum configuration)
-				acc
+		val acc = TreeMap<String, TranslationWithProvenance>()
+		for ((source, map) in (translations.baseTranslation.asSequence() + translations.inlineTranslations.asSequence())) {
+			for ((key, value) in map) {
+				val provenatedValue = TranslationWithProvenance(source, value)
+				val existing = acc[key]
+				if (existing != null)
+					warnForDuplicate(key, provenatedValue, existing)
+				acc[key] = provenatedValue
 			}
+		}
+		return acc.mapValuesTo(TreeMap()) { it.value.value }
 	}
+
+	fun warnForDuplicate(
+		key: String,
+		left: TranslationWithProvenance,
+		right: TranslationWithProvenance
+	) {
+		problems.reporter.report(PROBLEM_DUPLICATE_TRANSLATION) {
+			it.severity(Severity.WARNING)
+			it.fileLocation(left.source)
+			it.fileLocation(right.source)
+			it.solution("Try creating a helper method that is used by both code paths.")
+			it.solution("Alternatively try changing the name of one of the translations.")
+			it.details("The translation key $key is specified by both ${left.source} (as \"${left.value}\") and by ${right.source} (as \"${right.value}\"). Only one location may specify a translation.")
+		}
+	}
+
+	data class TranslationWithProvenance(val source: String, val value: String)
 
 	private fun parseClassAnnotations(file: File): TreeMap<String, String> {
 		val map = TreeMap<String, String>()

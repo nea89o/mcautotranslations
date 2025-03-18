@@ -2,6 +2,7 @@ package moe.nea.mcautotranslations.gradle
 
 import moe.nea.mcautotranslation.`gradle-plugin`.BuildConfig
 import org.gradle.api.Project
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -9,6 +10,10 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 
 class MCAutoTranslationsGradlePlugin : KotlinCompilerPluginSupportPlugin {
+	companion object {
+		val PROBLEM_GROUP = ProblemGroup.create("mc-auto-translations", "MC Auto Translations")
+	}
+
 	override fun apply(target: Project) {
 		println("Applying plugin to project")
 		target.extensions.create("mcAutoTranslations", MCAutoTranslationsExtension::class.java, target)
