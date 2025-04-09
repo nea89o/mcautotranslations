@@ -86,8 +86,8 @@ class MCAutoTranslationsCallTransformerAndCollector(
 		val varArgs = irVararg(context.irBuiltIns.anyType.makeNullable(), arguments)
 
 		return irCall(
-			replacementFunction, replacementFunction.owner.returnType,
-			valueArgumentsCount = 2,
+			replacementFunction,
+			replacementFunction.owner.returnType,
 		).apply {
 			putValueArgument(0,
 			                 constString(key, keySource.startOffset, keySource.endOffset))
@@ -139,8 +139,8 @@ class MCAutoTranslationsCallTransformerAndCollector(
 		text: String,
 		startOffset: Int = SYNTHETIC_OFFSET,
 		endOffset: Int = SYNTHETIC_OFFSET
-	): IrConst<String> =
-		text.toIrConst(irPluginContext.irBuiltIns.stringType, startOffset, endOffset) as IrConst<String>
+	): IrConst =
+		text.toIrConst(irPluginContext.irBuiltIns.stringType, startOffset, endOffset)
 }
 
 data class StringTemplate(
@@ -150,13 +150,13 @@ data class StringTemplate(
 }
 
 fun IrExpression?.asStringDyn(): StringTemplate? = when (this) {
-	is IrConst<*> -> if (kind == IrConstKind.String) StringTemplate(this) else null
+	is IrConst -> if (kind == IrConstKind.String) StringTemplate(this) else null
 	is IrStringConcatenation -> StringTemplate(this.arguments)
 	else -> null
 }
 
 fun IrExpression?.asStringConst(): String? = when (this) {
-	is IrConst<*> -> if (kind == IrConstKind.String) value as String else null
+	is IrConst -> if (kind == IrConstKind.String) value as String else null
 	is IrStringConcatenation -> this.arguments.singleOrNull().asStringConst()
 	else -> null
 }

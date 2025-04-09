@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "2.0.20" apply false
-	id("com.google.devtools.ksp") version "2.0.20-1.0.25" apply false
+	kotlin("jvm") version "2.1.20" apply false
+	id("com.google.devtools.ksp") version "2.1.20-2.0.0" apply false
 	id("com.gradle.plugin-publish") version "1.1.0" apply false
 	id("com.github.gmazzo.buildconfig") version "5.5.0" apply false
 }

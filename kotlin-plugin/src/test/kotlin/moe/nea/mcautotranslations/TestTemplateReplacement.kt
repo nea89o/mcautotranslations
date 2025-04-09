@@ -10,7 +10,7 @@ class TestTemplateReplacement {
 	@Test
 	fun testX() {
 		val dollar = '$'
-		compile(listOf(
+		val result = compile(listOf(
 			SourceFile.kotlin(
 				"test.kt",
 				"""
