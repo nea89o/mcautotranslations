@@ -24,4 +24,5 @@ fun main() {
 	println(tr("test3", "Goodbye ${Math.random()} ${Math.E}"))
 	println(OtherTest().testFunc(10, tr("lol", "Lolnea")))
 	println(Test2.x())
+	println("non tr test: ${Math.random()}")
 }

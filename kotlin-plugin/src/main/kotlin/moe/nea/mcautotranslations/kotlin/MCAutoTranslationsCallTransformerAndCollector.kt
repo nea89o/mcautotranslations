@@ -40,7 +40,7 @@ class MCAutoTranslationsCallTransformerAndCollector(
 		val fqFunctionName = function.kotlinFqName
 		val translatedFunctionName = translationNames[fqFunctionName]
 			?: return super.visitCall(expression)
-		if (expression.valueArgumentsCount != 2) {
+		if (expression.arguments.size != 2) {
 			messageCollector.report(
 				CompilerMessageSeverity.ERROR,
 				"Translation calls need to have exactly two arguments. Use $fqFunctionName(\"translation.key\", \"some \$template string\")",
@@ -48,21 +48,21 @@ class MCAutoTranslationsCallTransformerAndCollector(
 			)
 			return super.visitCall(expression)
 		}
-		val translationKey = expression.getValueArgument(0).asStringConst()
+		val translationKey = expression.arguments[0].asStringConst()
 		if (translationKey == null) {
 			messageCollector.report(
 				CompilerMessageSeverity.ERROR,
 				"The key of a translation call needs to be a constant string. Use $fqFunctionName(\"translation.key\", \"some \$template string\")",
-				(expression.getValueArgument(0) ?: expression).getCompilerMessageLocation(file)
+				(expression.arguments[0] ?: expression).getCompilerMessageLocation(file)
 			)
 			return super.visitCall(expression)
 		}
-		val translationDefault = expression.getValueArgument(1).asStringDyn()
+		val translationDefault = expression.arguments[1].asStringDyn()
 		if (translationDefault == null) {
 			messageCollector.report(
 				CompilerMessageSeverity.ERROR,
 				"The default of a translation call needs to be a string template or constant. Use $fqFunctionName(\"translation.key\", \"some \$template string\")",
-				(expression.getValueArgument(1) ?: expression).getCompilerMessageLocation(file)
+				(expression.arguments[1] ?: expression).getCompilerMessageLocation(file)
 			)
 			return super.visitCall(expression)
 
@@ -71,7 +71,7 @@ class MCAutoTranslationsCallTransformerAndCollector(
 		val builder = DeclarationIrBuilder(irPluginContext, symbol, expression.startOffset, expression.endOffset)
 		return builder.generateTemplate(
 			translatedFunctionName, translationKey,
-			expression.getValueArgument(0)!!, translationDefault)
+			expression.arguments.get(0)!!, translationDefault)
 	}
 
 	fun DeclarationIrBuilder.generateTemplate(
@@ -89,9 +89,9 @@ class MCAutoTranslationsCallTransformerAndCollector(
 			replacementFunction,
 			replacementFunction.owner.returnType,
 		).apply {
-			putValueArgument(0,
+			this.arguments.set(0,
 			                 constString(key, keySource.startOffset, keySource.endOffset))
-			putValueArgument(1, varArgs)
+			this.arguments.set(1, varArgs)
 		}
 	}
 
@@ -125,8 +125,8 @@ class MCAutoTranslationsCallTransformerAndCollector(
 			.referenceConstructors(GatheredTranslation::class.java.toClassId()).single()
 		val annotations = templates.map {
 			builder.irCallConstructor(annotationCons, listOf()).apply {
-				putValueArgument(0, constString(it.key))
-				putValueArgument(1, constString(it.value))
+				arguments.set(0, constString(it.key))
+				arguments.set(1, constString(it.value))
 			}
 		}
 		val annotationContainer = file.declarations.singleOrNull()?.takeIf { it is IrClass } ?: file
